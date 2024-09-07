@@ -9,15 +9,24 @@ import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.service.EmployeeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.Base64;
+
+import java.security.SecureRandom;
+
+@Slf4j
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeMapper employeeMapper;
+
+    private static final SecureRandom RANDOM = new SecureRandom();//随机数生成器
+    private static final int SALT_LENGTH = 16;//盐的长度
 
     /**
      * 员工登录
@@ -25,6 +34,8 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeeLoginDTO
      * @return
      */
+
+
     public Employee login(EmployeeLoginDTO employeeLoginDTO) {
         String username = employeeLoginDTO.getUsername();
         String password = employeeLoginDTO.getPassword();
@@ -39,8 +50,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
-        if (!password.equals(employee.getPassword())) {
+        //对前端传来的密码进行md5加盐处理，然后再进行比对
+        String salt = employee.getSalt();//盐
+        String hashedPassword = hashPassword(password, salt);//加密后的密码
+
+        if (!hashedPassword.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
         }
@@ -54,4 +68,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employee;
     }
 
+    //对密码进行加密
+    private String hashPassword(String password, String salt) {
+        String saltedPassword = salt + password;
+        return DigestUtils.md5DigestAsHex(saltedPassword.getBytes());
+    }
 }

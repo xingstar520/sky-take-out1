@@ -4,6 +4,7 @@ import com.alibaba.druid.util.Utils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sky.annotation.AutoFill;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
@@ -13,6 +14,7 @@ import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.dto.EmployeeUppswdDTO;
 import com.sky.entity.Employee;
+import com.sky.enumeration.OperationType;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
@@ -104,6 +106,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     @Transactional
     @Override
+//    @AutoFill(OperationType.INSERT)
     public void save(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
@@ -115,12 +118,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         //对密码进行加密,默认密码为123456
         String password = hashPassword(PasswordConstant.DEFAULT_PASSWORD, employee.getSalt());
         employee.setPassword(password);
-        //设置创建时间和更新时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-        //设置创建人和更新人
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+        //通过注释的方式进行填充
+//        //设置创建时间和更新时间
+//        employee.setCreateTime(LocalDateTime.now());
+//        employee.setUpdateTime(LocalDateTime.now());
+//        //设置创建人和更新人
+//        employee.setCreateUser(BaseContext.getCurrentId());
+//        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.insert(employee);
     }
 
@@ -162,6 +166,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @return
      */
     @Override
+//    @AutoFill(OperationType.UPDATE)
     public void startOrStop(Long id, Integer status) {
 //        Employee employee = new Employee();
 //        employee.setId(id);
@@ -171,8 +176,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = Employee.builder()
                 .id(id)
                 .status(status)
-                .updateTime(LocalDateTime.now())
-                .updateUser(BaseContext.getCurrentId())
+//                .updateTime(LocalDateTime.now())
+//                .updateUser(BaseContext.getCurrentId())
                 .build();
         employeeMapper.updateById(employee);
     }
@@ -196,11 +201,12 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeeDTO
      */
     @Override
+//    @AutoFill(OperationType.UPDATE)
     public void update(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+//        employee.setUpdateTime(LocalDateTime.now());
+//        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateById(employee);
     }
 
@@ -210,6 +216,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeeUppswdDTO
      */
     @Override
+//    @AutoFill(OperationType.UPDATE)
     public void editPassword(EmployeeUppswdDTO employeeUppswdDTO) {
         //1.根据id查询员工
         Employee employee = employeeMapper.selectById(employeeUppswdDTO.getEmpId());
@@ -226,8 +233,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         String newPassword = hashPassword(employeeUppswdDTO.getNewPassword(), employee.getSalt());
         //5.修改密码
         employee.setPassword(newPassword);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+//        employee.setUpdateTime(LocalDateTime.now());
+//        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateById(employee);
     }
 }

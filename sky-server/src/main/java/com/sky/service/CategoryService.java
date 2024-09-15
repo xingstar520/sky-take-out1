@@ -2,8 +2,12 @@ package com.sky.service;
 
 import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
+import com.sky.entity.Category;
 import com.sky.result.PageResult;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 /**
  * @author Jie.
@@ -41,5 +45,5 @@ public interface CategoryService {
     /**
      * 分类列表
      */
-    void listCategory(Integer type);
+    List<Category> listCategory(@Param("type") Integer type);
 }

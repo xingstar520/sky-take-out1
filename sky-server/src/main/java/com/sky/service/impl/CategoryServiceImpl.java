@@ -7,7 +7,6 @@ import com.sky.context.BaseContext;
 import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
-import com.sky.entity.Employee;
 import com.sky.mapper.CategoryMapper;
 import com.sky.result.PageResult;
 import com.sky.service.CategoryService;
@@ -130,10 +129,15 @@ public class CategoryServiceImpl implements CategoryService {
      * 分类列表
      */
     @Override
-    public void listCategory(Integer type) {
+    public List<Category> listCategory(Integer type) {
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Category::getType, type);
+        queryWrapper.isNotNull(Category::getType)
+                .eq(Category::getType, type)
+                .eq(Category::getStatus, StatusConstant.ENABLE)
+                .orderByAsc(Category::getSort)
+                .orderByDesc(Category::getCreateTime);
         List<Category> categories = categoryMapper.selectList(queryWrapper);
         log.info("分类列表：{}", categories);
+        return categories;
     }
 }

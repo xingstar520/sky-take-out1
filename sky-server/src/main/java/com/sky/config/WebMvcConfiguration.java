@@ -96,6 +96,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        log.info("配置 MyBatis-Plus 的全局设置...");
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 分页插件
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));

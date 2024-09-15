@@ -10,6 +10,9 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2024/9/10
  * @version: 1.0
  */
+/**
+ * 套餐管理
+ */
 @Mapper
 public interface SetmealMapper extends BaseMapper<Setmeal> {
 }

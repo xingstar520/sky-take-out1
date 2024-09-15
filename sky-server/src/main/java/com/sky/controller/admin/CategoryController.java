@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
+import com.sky.entity.Category;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.CategoryService;
@@ -10,6 +11,8 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Jie.
@@ -31,7 +34,7 @@ public class CategoryController {
      */
     @PostMapping
     @ApiOperation("添加分类")
-    public Result saveCategory(@RequestBody CategoryDTO categoryDTO) {
+    public Result<String> saveCategory(@RequestBody CategoryDTO categoryDTO) {
         log.info("添加分类：{}", categoryDTO);
         categoryService.saveCategory(categoryDTO);
         return Result.success();
@@ -53,7 +56,7 @@ public class CategoryController {
      */
     @PostMapping("/status/{status}")
     @ApiOperation("修改分类状态")
-    public Result updateCategoryStatus(@PathVariable("status") Integer status, Long id) {
+    public Result<String> updateCategoryStatus(@PathVariable("status") Integer status, Long id) {
         log.info("修改分类状态：status={}, id={}", status, id);
         categoryService.updateCategoryStatus(status, id);
         return Result.success();
@@ -64,7 +67,7 @@ public class CategoryController {
      */
     @DeleteMapping
     @ApiOperation("根据id删除分类")
-    public Result deleteCategory(Long id) {
+    public Result<String> deleteCategory(Long id) {
         log.info("删除分类：id={}", id);
         categoryService.deleteCategory(id);
         return Result.success();
@@ -86,9 +89,9 @@ public class CategoryController {
      */
     @GetMapping("/list")
     @ApiOperation("根据类型查询分类")
-    public Result listCategory(Integer type) {
+    public Result<List<Category>> listCategory(Integer type) {
         log.info("根据类型查询分类：type={}", type);
-        categoryService.listCategory(type);
-        return Result.success();
+        List<Category> list = categoryService.listCategory(type);
+        return Result.success(list);
     }
 }

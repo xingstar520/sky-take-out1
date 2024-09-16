@@ -26,8 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Jie.
@@ -179,5 +181,45 @@ public class DishServiceImpl implements DishService {
             MybatisBatch.Method<DishFlavor> method = new MybatisBatch.Method<>(DishFlavorMapper.class);
             mybatisBatch.execute(method.insert());
         }
+    }
+
+    /**
+     * 更新菜品状态
+     */
+    @Override
+    @Transactional
+    public void updateStatus(Long id, Integer status) {
+        Dish dish = dishMapper.selectById(id);
+        if (dish == null) {
+            throw new RuntimeException(MessageConstant.DISH_NOT_FOUND);
+        }
+        dish.setStatus(status);
+        dishMapper.updateById(dish);
+
+        if (Objects.equals(status, StatusConstant.DISABLE)){
+            // 如果是停售操作，还需要将包含当前菜品的套餐也停售
+            List<Long> ids = new ArrayList<>();
+            ids.add(id);
+            // 查询包含当前菜品的套餐
+            LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.in(SetmealDish::getDishId, ids);
+            List<Long> setmealIds = setmealDishMapper.selectList(queryWrapper).stream().map(SetmealDish::getSetmealId).distinct().toList();
+            if (!setmealIds.isEmpty()) {
+                throw new RuntimeException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+            }
+        }
+    }
+
+    /**
+     * 根据分类id查询菜品
+     */
+    @Override
+    @Transactional
+    public List<Dish> listByCategoryId(Long categoryId) {
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId, categoryId);
+        List<Dish> dishes = dishMapper.selectList(queryWrapper);
+        log.info("根据分类id查询菜品:{}", dishes);
+        return dishes;
     }
 }

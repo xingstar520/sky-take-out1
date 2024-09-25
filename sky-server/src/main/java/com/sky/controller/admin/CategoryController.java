@@ -20,7 +20,7 @@ import java.util.List;
  * @date 2024/9/10
  * @version: 1.0
  */
-@RestController
+@RestController("adminCategoryController")
 @RequestMapping("/admin/category")
 @Slf4j
 @Api(tags = "分类管理")

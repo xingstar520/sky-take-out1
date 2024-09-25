@@ -222,4 +222,29 @@ public class DishServiceImpl implements DishService {
         log.info("根据分类id查询菜品:{}", dishes);
         return dishes;
     }
+
+    /**
+     * 根据菜品id查询菜品
+     */
+    @Override
+    public List<DishVO> listWithFlavor(Dish dish) {
+        // 查询菜品
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId, dish.getCategoryId());
+        queryWrapper.eq(Dish::getStatus, StatusConstant.ENABLE);
+        List<Dish> dishes = dishMapper.selectList(queryWrapper);
+        List<DishVO> dishVOList = new ArrayList<>();
+        for (Dish d : dishes) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d, dishVO);
+            // 查询口味
+            LambdaQueryWrapper<DishFlavor> flavorQueryWrapper = new LambdaQueryWrapper<>();
+            flavorQueryWrapper.eq(DishFlavor::getDishId, d.getId());
+            List<DishFlavor> flavors = dishFlavorMapper.selectList(flavorQueryWrapper);
+            // 封装结果
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+        return dishVOList;
+    }
 }

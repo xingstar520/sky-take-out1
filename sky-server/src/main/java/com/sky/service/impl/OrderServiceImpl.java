@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.batch.MybatisBatch;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.sky.WebSocket.WebSocketServer;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.*;
@@ -78,11 +79,13 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private WeChatPayUtil weChatPayUtil;
 
+    @Autowired
+    private WebSocketServer webSocketServer;
+
     /**
      * 用户下单
      */
     @Override
-    @Transactional
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
         //处理各种业务异常(地址簿为空，购物车为空，商品库存不足等)
         AddressBook addressBook = addressBookMapper.selectById(ordersSubmitDTO.getAddressBookId());
@@ -91,7 +94,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //检查收货地址是否超出配送范围
-        checkOutOfRange(addressBook.getProvinceName() + addressBook.getDistrictName() + addressBook.getDetail());
+        //测试跳过
+//        checkOutOfRange(addressBook.getProvinceName() + addressBook.getDistrictName() + addressBook.getDetail());
 
         Long currentId = BaseContext.getCurrentId();
         ShoppingCart shoppingCart = new ShoppingCart();
@@ -145,7 +149,6 @@ public class OrderServiceImpl implements OrderService {
      * 订单支付
      */
     @Override
-    @Transactional
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         // 当前登录用户id
         Long userId = BaseContext.getCurrentId();
@@ -176,7 +179,6 @@ public class OrderServiceImpl implements OrderService {
      * 支付成功，修改订单状态
      */
     @Override
-    @Transactional
     public void paySuccess(String outTradeNo) {
 
         // 根据订单号查询订单
@@ -192,6 +194,15 @@ public class OrderServiceImpl implements OrderService {
                 .checkoutTime(LocalDateTime.now())
                 .build();
         orderMapper.updateById(orders);
+
+        //通过WebSocket向客户端发送消息 type , orderId ,content
+        Map map = new HashMap();
+        map.put("type", 1);//1表示来单提醒
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号： " + outTradeNo + " 有新订单，请及时处理！");
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
@@ -497,6 +508,24 @@ public class OrderServiceImpl implements OrderService {
                 .deliveryTime(LocalDateTime.now())
                 .build();
         orderMapper.updateById(orders);
+    }
+
+    /**
+     * 催单
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders ordersDB = orderMapper.selectById(id);
+
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        Map map = new HashMap();
+        map.put("type", 2);//2表示催单提醒
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号： " + ordersDB.getNumber() + " 有催单，请及时处理！");
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 
     /**

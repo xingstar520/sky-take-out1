@@ -34,7 +34,14 @@ public interface OrderMapper extends BaseMapper<Orders> {
     /**
      * 营业额统计数据
      */
-    Double sumByNao(Map map);
+    Double sumByMap(Map map);
+
+    /**
+     * 根据动态条件统计订单数量
+     * @param map
+     * @return
+     */
+    Integer countByMap(Map map);
 
     /**
      * 获取指定时间内Top10
